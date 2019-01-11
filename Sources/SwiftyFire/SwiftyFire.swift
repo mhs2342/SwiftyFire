@@ -7,16 +7,12 @@ public protocol SwiftyFireDelegate {
 
 public final class SwiftyFire {
     public typealias SFCallback = ((Value?, Error?) -> Void)
-    private let secrets = Secrets()
+    private let secrets: SFSecrets
     public var delegate: SwiftyFireDelegate?
 
-    // used for testing exclusively
-    internal init(token: GoogleAccessToken) {
-        secrets._access_token = token
-    }
-
-    public init(delegate: SwiftyFireDelegate) {
+    public init(private_key: String, service_account: String, db_url: String, delegate: SwiftyFireDelegate) {
         self.delegate = delegate
+        self.secrets = SFSecrets(url: db_url, private_key: private_key, service_account: service_account)
         setup()
     }
 
@@ -25,6 +21,8 @@ public final class SwiftyFire {
     }
 
     private func setup() {
+        let group = DispatchGroup()
+        group.enter()
         secrets.getGoogleAuthToken { [weak self] (token, err) in
             guard let self = self else { return }
             if token != nil {
@@ -33,7 +31,9 @@ public final class SwiftyFire {
             if let err = err {
                 self.delegate?.authenticationFailure(error: err)
             }
+            group.leave()
         }
+        group.wait()
     }
 
     // MARK: - Public Methods
@@ -179,7 +179,7 @@ public final class SwiftyFire {
     }
 
     private func buildURLString(path: String) -> String {
-        var urlString = "\(Secrets.databaseURL)\(Secrets.rootPath)/\(path).json"
+        var urlString = "\(secrets.databaseURL)/\(path).json"
         urlString.append(buildAuthParam())
         return urlString
     }

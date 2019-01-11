@@ -8,37 +8,30 @@
 import Foundation
 import SwiftJWT
 
-class Secrets {
-    static var databaseURL: String {
-        get {
-            return Secrets.getEnvironmentVar("DATABASE_URL") ?? ""
-        }
-    }
+class SFSecrets {
+    var databaseURL: String
+    var googlePrivateKeyString: String
+    var firebaseServiceAccount: String
 
-    static var rootPath: String {
+    var googlePrivateKey: Data? {
         get {
-            return Secrets.getEnvironmentVar("DATABASE_ROOT") ?? "_trash"
-        }
-    }
-
-    static var googlePrivateKey: Data? {
-        get {
-            let keyString = Secrets.getEnvironmentVar("GOOGLE_PRIVATE_KEY") ?? ""
+            let keyString = googlePrivateKeyString
             return keyString.data(using: .utf8)
         }
     }
 
-    static var firebaseServiceAccount: String {
-        get {
-            return Secrets.getEnvironmentVar("FIREBASE_SERVICE_ACCOUNT") ?? ""
-        }
-    }
-
+    // See RFC 7519 <https://tools.ietf.org/html/rfc7519#section-4.1>
+    private let header = Header(typ: "JWT")
     var jwt: String? {
         get {
+            let myClaims = MyClaims(iss: firebaseServiceAccount,
+                                    scope: "https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email",
+                                    exp: Int(Date().addingTimeInterval(60 * 30).timeIntervalSince1970),
+                                    aud: "https://www.googleapis.com/oauth2/v4/token",
+                                    iat: Int(Date().timeIntervalSince1970))
             var myJWT = JWT(header: header, claims: myClaims)
             do {
-                guard let privateKey: Data = Secrets.googlePrivateKey else { return nil }
+                guard let privateKey: Data = googlePrivateKey else { return nil }
                 let jwtSigner = JWTSigner.rs256(privateKey: privateKey)
                 let signedJWT = try myJWT.sign(using: jwtSigner)
                 return signedJWT
@@ -47,18 +40,16 @@ class Secrets {
             }
         }
     }
-    // See RFC 7519 <https://tools.ietf.org/html/rfc7519#section-4.1>
-    private let myClaims = MyClaims(iss: Secrets.firebaseServiceAccount,
-                                    scope: "https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email",
-                                    exp: Int(Date().addingTimeInterval(60 * 30).timeIntervalSince1970),
-                                    aud: "https://www.googleapis.com/oauth2/v4/token",
-                                    iat: Int(Date().timeIntervalSince1970))
-    private let header = Header(typ: "JWT")
 
     var _access_token: GoogleAccessToken?
     private var timer: DispatchSourceTimer?
 
-    public init() { setup() }
+    public init(url: String, private_key: String, service_account: String) {
+        self.databaseURL = url
+        self.googlePrivateKeyString = private_key
+        self.firebaseServiceAccount = service_account
+        setup()
+    }
 
     private func setup() {
         let queue = DispatchQueue(label: "com.swiftyfire.timer.authToken")

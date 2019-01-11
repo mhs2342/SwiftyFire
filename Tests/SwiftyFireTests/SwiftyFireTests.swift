@@ -28,7 +28,7 @@ final class SwiftyFireTests: XCTestCase {
             exp1.fulfill()
         }
 
-        swiftyFire.get(path: "tests/get/foo") { (val, error) in
+        swiftyFire.get(path: "get/foo") { (val, error) in
             guard let val = val else {
                 XCTFail()
                 return
@@ -48,7 +48,7 @@ final class SwiftyFireTests: XCTestCase {
     func testPut() {
         let exp1 = expectation(description: "com.swiftyfire.putbar")
         let payload = ["boo": "raz"] as [String: AnyObject]
-        swiftyFire.put(path: "tests/put", val: payload) { (val, error) in
+        swiftyFire.put(path: "put", val: payload) { (val, error) in
             guard let val = val else {
                 XCTFail()
                 return
@@ -75,7 +75,7 @@ final class SwiftyFireTests: XCTestCase {
         ]
         let exp1 = expectation(description: "com.swiftyfire.putcomplex")
 
-        swiftyFire.put(path: "tests/complexput", val: complexDict as [String: AnyObject]) { (val, error) in
+        swiftyFire.put(path: "complexput", val: complexDict as [String: AnyObject]) { (val, error) in
             guard let val = val else {
                 XCTFail()
                 return
@@ -104,7 +104,7 @@ final class SwiftyFireTests: XCTestCase {
             "bool_val": false
         ]
         let exp1 = expectation(description: "com.swiftyfire.patchcomplex1")
-        swiftyFire.patch(path: "tests/patch", val: complexDict as [String: AnyObject]) { (val, error) in
+        swiftyFire.patch(path: "patch", val: complexDict as [String: AnyObject]) { (val, error) in
             guard let val = val else {
                 XCTFail()
                 return
@@ -122,7 +122,7 @@ final class SwiftyFireTests: XCTestCase {
         }
 
         let exp2 = expectation(description: "com.swiftyfire.patchcomplex2")
-        swiftyFire.get(path: "tests/patch/immutable") { (val, err) in
+        swiftyFire.get(path: "patch/immutable") { (val, err) in
             guard let val = val else {
                 XCTFail()
                 return
@@ -142,7 +142,7 @@ final class SwiftyFireTests: XCTestCase {
     func testPost() {
         let exp1 = expectation(description: "com.swiftyfire.post")
         let payload = ["message": "heyo!"]
-        swiftyFire.post(path: "tests/post", val: payload as [String : AnyObject]) { (val, error) in
+        swiftyFire.post(path: "post", val: payload as [String : AnyObject]) { (val, error) in
             guard let val = val else {
                 XCTFail()
                 return
@@ -164,7 +164,7 @@ final class SwiftyFireTests: XCTestCase {
         let exp2 = expectation(description: "com.swiftyfire.delete")
 
         let payload = ["boo": "raz"] as [String: AnyObject]
-        swiftyFire.put(path: "tests/put", val: payload) { (val, error) in
+        swiftyFire.put(path: "put", val: payload) { (val, error) in
             guard let val = val else {
                 XCTFail()
                 return
@@ -178,7 +178,7 @@ final class SwiftyFireTests: XCTestCase {
             }
             exp1.fulfill()
 
-            self.swiftyFire.delete(path: "tests/put") { (val, err) in
+            self.swiftyFire.delete(path: "put") { (val, err) in
                 guard let val = val else { return }
                 XCTAssertEqual(val, .null)
                 exp2.fulfill()
@@ -189,10 +189,15 @@ final class SwiftyFireTests: XCTestCase {
     }
 
     func generateAuthentication(completion: @escaping (SwiftyFire) -> Void) {
-        let sensitive = Secrets()
-        sensitive.getGoogleAuthToken { (token, error) in
-            completion(SwiftyFire(token: token!))
-        }
+        let data = try! SwiftyFireTests.loadJsonFromFile("secrets")
+        let secrets = try! JSONDecoder().decode(SFTestingSecrets.self, from: data)
+        let gpk = try! SwiftyFireTests.loadJsonFromFile("GPK", "txt")
+        let key = String(data: gpk, encoding: .utf8)
+        let swiftyFire = SwiftyFire(private_key: key!,
+                                    service_account: secrets.firebase_service_account,
+                                    db_url: secrets.database_url,
+                                    delegate: self)
+            completion(swiftyFire)
     }
 
     func createTestingEnvironment() {
@@ -201,10 +206,24 @@ final class SwiftyFireTests: XCTestCase {
         }
     }
 
+    static func loadJsonFromFile(_ name: String, _ suffix: String = "json") throws -> Data {
+        let bundle = Bundle(for: SwiftyFireTests.self)
+        let path = bundle.path(forResource: name, ofType: suffix)
+        let url = URL(fileURLWithPath: path!)
+        return try Data(contentsOf: url)
+    }
+
     static var allTests = [
         ("testPatch", testPatch),
         ("testPut", testPut),
         ("testComplexPut", testComplexPut),
         ("testGet", testGet)
     ]
+}
+
+extension SwiftyFireTests: SwiftyFireDelegate {
+    func didSuccessfullyAuthenticate(connection: SwiftyFire) { }
+    func authenticationFailure(error: Error) {
+        print(error.localizedDescription)
+    }
 }
