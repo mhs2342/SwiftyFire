@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftJWT
+import Logging
 
 class SFSecrets {
     var databaseURL: String
@@ -43,40 +44,13 @@ class SFSecrets {
 
     var _access_token: GoogleAccessToken?
     private var timer: DispatchSourceTimer?
+    private var logger: PrintLogger = PrintLogger()
 
     public init(url: String, private_key: String, service_account: String) {
+        logger.debug("Setting up SwiftyFire Secrets")
         self.databaseURL = url
         self.googlePrivateKeyString = private_key
         self.firebaseServiceAccount = service_account
-        setup()
-    }
-
-    private func setup() {
-        let queue = DispatchQueue(label: "com.swiftyfire.timer.authToken")
-        timer = DispatchSource.makeTimerSource(queue: queue)
-        timer?.schedule(deadline: .now(), repeating: .seconds(60 * 29))
-        timer?.setEventHandler { [weak self] in
-            self?.refreshToken()
-        }
-        timer?.resume()
-    }
-
-    private func refreshToken() {
-        getGoogleAuthToken { [weak self] (token, error) in
-            guard let self = self else { return }
-            if let token = token {
-                self._access_token = token
-            }
-        }
-    }
-
-    /// Method for retrieving environment variables
-    ///
-    /// - Parameter name: key of the variable
-    /// - Returns: value stored at key
-    static func getEnvironmentVar(_ name: String) -> String? {
-        guard let rawValue = getenv(name) else { return nil }
-        return String(utf8String: rawValue)
     }
 
     /// Create GoogleOAuthToken from signed JWT
@@ -99,6 +73,7 @@ class SFSecrets {
         request.httpBody = postString.data(using: .utf8)
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
             if let error = error {
+                self.logger.debug("Error retrieving token \(error.localizedDescription)")
                 completion(nil, error)
                 return
             }
@@ -106,6 +81,7 @@ class SFSecrets {
             if let data = data {
                 do {
                     let token = try JSONDecoder().decode(GoogleAccessToken.self, from: data)
+                    self.logger.debug("Successfully decoded access token")
                     self._access_token = token
                     completion(token, nil)
                 }
@@ -115,6 +91,7 @@ class SFSecrets {
                 }
             }
         }
+        logger.debug("Requesting Google Access Token")
         task.resume()
     }
 }

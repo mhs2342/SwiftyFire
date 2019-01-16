@@ -10,6 +10,10 @@ final class SwiftyFireTests: XCTestCase {
         generateAuthentication { (swifty) in
             self.swiftyFire = swifty
             group.leave()
+            group.enter()
+            self.swiftyFire.setup(completion: { (_, _) in
+                group.leave()
+            })
 
         }
         _ = group.wait(timeout: .now() + 10)

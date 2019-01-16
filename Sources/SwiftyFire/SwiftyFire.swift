@@ -1,4 +1,5 @@
 import Foundation
+import Logging
 
 public protocol SwiftyFireDelegate {
     func didSuccessfullyAuthenticate(connection: SwiftyFire)
@@ -9,17 +10,21 @@ public final class SwiftyFire {
     public typealias SFCallback = ((Value?, Error?) -> Void)
     private let secrets: SFSecrets
     public var delegate: SwiftyFireDelegate?
+    private var logger = PrintLogger()
 
     public init(private_key: String, service_account: String, db_url: String, delegate: SwiftyFireDelegate) {
         self.delegate = delegate
         self.secrets = SFSecrets(url: db_url, private_key: private_key, service_account: service_account)
+        logger.debug("SwiftyFire initialized")
     }
 
     deinit {
+        logger.debug("Deinit called")
         delegate = nil
     }
 
     public func setup(completion: @escaping (GoogleAccessToken?, Error?) -> Void) {
+        logger.debug("SwiftyFire attempting setup")
         secrets.getGoogleAuthToken { [weak self] (token, err) in
             guard let self = self else { return }
             if token != nil {
