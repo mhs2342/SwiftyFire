@@ -13,16 +13,13 @@ public final class SwiftyFire {
     public init(private_key: String, service_account: String, db_url: String, delegate: SwiftyFireDelegate) {
         self.delegate = delegate
         self.secrets = SFSecrets(url: db_url, private_key: private_key, service_account: service_account)
-        setup()
     }
 
     deinit {
         delegate = nil
     }
 
-    private func setup() {
-        let group = DispatchGroup()
-        group.enter()
+    public func setup(completion: @escaping (GoogleAccessToken?, Error?) -> Void) {
         secrets.getGoogleAuthToken { [weak self] (token, err) in
             guard let self = self else { return }
             if token != nil {
@@ -31,9 +28,8 @@ public final class SwiftyFire {
             if let err = err {
                 self.delegate?.authenticationFailure(error: err)
             }
-            group.leave()
+            completion(token, err)
         }
-        group.wait()
     }
 
     // MARK: - Public Methods
