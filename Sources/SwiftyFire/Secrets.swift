@@ -51,8 +51,9 @@ class SFSecrets {
             logger.debug("Creating Signer")
             let jwtSigner = JWTSigner.rs256(privateKey: privateKey)
             logger.debug("Signing private key")
-            let signedJWT = try myJWT.sign(using: jwtSigner)
-            return signedJWT
+            assert(myJWT != nil)
+            assert(jwtSigner != nil)
+            return try myJWT.sign(using: jwtSigner)
         } catch  {
             return nil
         }
