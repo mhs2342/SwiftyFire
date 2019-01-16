@@ -22,7 +22,6 @@ class SFSecrets {
     }
 
     // See RFC 7519 <https://tools.ietf.org/html/rfc7519#section-4.1>
-    private let header = Header(typ: "JWT")
     var _access_token: GoogleAccessToken?
     private var timer: DispatchSourceTimer?
     private var logger: PrintLogger = PrintLogger()
@@ -35,15 +34,23 @@ class SFSecrets {
     }
 
     private func createJWT() -> String? {
+        logger.debug("Generating JWT")
+        logger.debug("Creating Claims")
         let myClaims = MyClaims(iss: firebaseServiceAccount,
                                 scope: "https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email",
                                 exp: Int(Date().addingTimeInterval(60 * 30).timeIntervalSince1970),
                                 aud: "https://www.googleapis.com/oauth2/v4/token",
                                 iat: Int(Date().timeIntervalSince1970))
+        logger.debug("Creating Header")
+        let header = Header(typ: "JWT")
+        logger.debug("Creating JWT")
         var myJWT = JWT(header: header, claims: myClaims)
         do {
-            guard let privateKey: Data = googlePrivateKey else { return nil }
+            logger.debug("Getting Private key")
+            guard let privateKey = googlePrivateKey else { return nil }
+            logger.debug("Creating Signer")
             let jwtSigner = JWTSigner.rs256(privateKey: privateKey)
+            logger.debug("Signing private key")
             let signedJWT = try myJWT.sign(using: jwtSigner)
             return signedJWT
         } catch  {
