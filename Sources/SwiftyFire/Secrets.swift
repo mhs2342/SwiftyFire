@@ -59,8 +59,11 @@ class SFSecrets {
     ///   - jwtString: JWT containing the private key and neccessary claims + headers
     ///   - completion: A valid request will return a GoogleAccesstoken and a nil Error param
     func getGoogleAuthToken(completion: @escaping (GoogleAccessToken?, Error?) -> Void) {
+        self.logger.debug("Launching")
         guard let url = URL(string: "https://www.googleapis.com/oauth2/v4/token"),
             let jwt = jwt else {
+                self.logger.error("Error creating url \(SwiftyFireError.unableToCreateRequest)")
+                completion(nil, SwiftyFireError.unableToCreateRequest)
                 return
 
         }
@@ -68,12 +71,14 @@ class SFSecrets {
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         request.httpMethod = "POST"
         guard let postString = "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=\(jwt)".addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) else {
+            self.logger.error("Error creating post string \(SwiftyFireError.unableToCreateRequest)")
+            completion(nil, SwiftyFireError.unableToCreateRequest)
             return
         }
         request.httpBody = postString.data(using: .utf8)
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
             if let error = error {
-                self.logger.debug("Error retrieving token \(error.localizedDescription)")
+                self.logger.error("Error retrieving token \(error.localizedDescription)")
                 completion(nil, error)
                 return
             }
