@@ -23,25 +23,6 @@ class SFSecrets {
 
     // See RFC 7519 <https://tools.ietf.org/html/rfc7519#section-4.1>
     private let header = Header(typ: "JWT")
-    var jwt: String? {
-        get {
-            let myClaims = MyClaims(iss: firebaseServiceAccount,
-                                    scope: "https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email",
-                                    exp: Int(Date().addingTimeInterval(60 * 30).timeIntervalSince1970),
-                                    aud: "https://www.googleapis.com/oauth2/v4/token",
-                                    iat: Int(Date().timeIntervalSince1970))
-            var myJWT = JWT(header: header, claims: myClaims)
-            do {
-                guard let privateKey: Data = googlePrivateKey else { return nil }
-                let jwtSigner = JWTSigner.rs256(privateKey: privateKey)
-                let signedJWT = try myJWT.sign(using: jwtSigner)
-                return signedJWT
-            } catch  {
-                return nil
-            }
-        }
-    }
-
     var _access_token: GoogleAccessToken?
     private var timer: DispatchSourceTimer?
     private var logger: PrintLogger = PrintLogger()
@@ -53,6 +34,23 @@ class SFSecrets {
         self.firebaseServiceAccount = service_account
     }
 
+    private func createJWT() -> String? {
+        let myClaims = MyClaims(iss: firebaseServiceAccount,
+                                scope: "https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email",
+                                exp: Int(Date().addingTimeInterval(60 * 30).timeIntervalSince1970),
+                                aud: "https://www.googleapis.com/oauth2/v4/token",
+                                iat: Int(Date().timeIntervalSince1970))
+        var myJWT = JWT(header: header, claims: myClaims)
+        do {
+            guard let privateKey: Data = googlePrivateKey else { return nil }
+            let jwtSigner = JWTSigner.rs256(privateKey: privateKey)
+            let signedJWT = try myJWT.sign(using: jwtSigner)
+            return signedJWT
+        } catch  {
+            return nil
+        }
+    }
+
     /// Create GoogleOAuthToken from signed JWT
     ///
     /// - Parameters:
@@ -61,7 +59,7 @@ class SFSecrets {
     func getGoogleAuthToken(completion: @escaping (GoogleAccessToken?, Error?) -> Void) {
         self.logger.debug("Launching")
         guard let url = URL(string: "https://www.googleapis.com/oauth2/v4/token"),
-            let jwt = jwt else {
+            let jwt = createJWT() else {
                 self.logger.error("Error creating url \(SwiftyFireError.unableToCreateRequest)")
                 completion(nil, SwiftyFireError.unableToCreateRequest)
                 return

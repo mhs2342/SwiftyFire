@@ -25,9 +25,6 @@ public final class SwiftyFire {
 
     public func setup(completion: @escaping (GoogleAccessToken?, Error?) -> Void) {
         logger.debug("SwiftyFire attempting setup")
-        if secrets == nil {
-            logger.error("WTF just happened")
-        }
         secrets.getGoogleAuthToken { [unowned self] (token, err) in
             if token != nil {
                 self.delegate?.didSuccessfullyAuthenticate(connection: self)
