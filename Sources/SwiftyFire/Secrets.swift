@@ -72,14 +72,17 @@ class SFSecrets {
                 return
 
         }
+        logger.debug("Creating request")
         var request = URLRequest(url: url)
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         request.httpMethod = "POST"
+        logger.debug("Generating post string")
         guard let postString = "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=\(jwt)".addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) else {
             self.logger.error("Error creating post string \(SwiftyFireError.unableToCreateRequest)")
             completion(nil, SwiftyFireError.unableToCreateRequest)
             return
         }
+        logger.debug("Setting request body")
         request.httpBody = postString.data(using: .utf8)
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
             if let error = error {
