@@ -18,4 +18,5 @@ public enum SwiftyFireError: Error {
     case databaseUnavailable
     case unknownError
     case authenticationTokenWasNotRefreshed
+    case badPrivateKey
 }

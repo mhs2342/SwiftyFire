@@ -12,9 +12,11 @@ public final class SwiftyFire {
     public var delegate: SwiftyFireDelegate?
     private var logger = PrintLogger()
 
-    public init(private_key: String, service_account: String, db_url: String, delegate: SwiftyFireDelegate) {
+    public init(private_key: String, service_account: String, db_url: String, delegate: SwiftyFireDelegate) throws {
         self.delegate = delegate
-        self.secrets = SFSecrets(url: db_url, private_key: private_key, service_account: service_account)
+        self.secrets = try SFSecrets(url: db_url,
+                                     private_key: private_key,
+                                     service_account: service_account)
         logger.debug("SwiftyFire initialized")
     }
 
