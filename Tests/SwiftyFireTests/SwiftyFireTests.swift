@@ -195,13 +195,9 @@ final class SwiftyFireTests: XCTestCase {
     func generateAuthentication(completion: @escaping (SwiftyFire) -> Void) {
         let data = try! SwiftyFireTests.loadJsonFromFile("secrets")
         let secrets = try! JSONDecoder().decode(SFTestingSecrets.self, from: data)
-        let gpk = try! SwiftyFireTests.loadJsonFromFile("GPK", "txt")
-        let key = String(data: gpk, encoding: .utf8)
-        let swiftyFire = SwiftyFire(private_key: key!,
-                                    service_account: secrets.firebase_service_account,
-                                    db_url: secrets.database_url,
-                                    delegate: self)
-            completion(swiftyFire)
+        guard let jwt = ProcessInfo.processInfo.environment["jwt"] else { return }
+        let swiftyFire = try! SwiftyFire(jwt: jwt, db_url: secrets.database_url, delegate: self)
+        completion(swiftyFire)
     }
 
     func createTestingEnvironment() {

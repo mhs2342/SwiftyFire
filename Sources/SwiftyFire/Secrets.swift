@@ -6,20 +6,10 @@
 //
 
 import Foundation
-import SwiftJWT
 import Logging
 
 class SFSecrets {
     var databaseURL: String
-    var googlePrivateKeyString: String
-    var firebaseServiceAccount: String
-
-    var googlePrivateKey: Data? {
-        get {
-            let keyString = googlePrivateKeyString
-            return keyString.data(using: .utf8)
-        }
-    }
 
     // See RFC 7519 <https://tools.ietf.org/html/rfc7519#section-4.1>
     var _access_token: GoogleAccessToken?
@@ -27,26 +17,14 @@ class SFSecrets {
     private var logger: PrintLogger = PrintLogger()
     private var jwtString: String
 
-    public init(url: String, private_key: String, service_account: String) throws {
+    public init(url: String, jwt: String) {
         logger.debug("Setting up SwiftyFire Secrets")
         self.databaseURL = url
-        self.googlePrivateKeyString = private_key
-        self.firebaseServiceAccount = service_account
-
-        let myClaims = MyClaims(iss: firebaseServiceAccount,
-                                scope: "https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email",
-                                exp: Int(Date().addingTimeInterval(60 * 30).timeIntervalSince1970),
-                                aud: "https://www.googleapis.com/oauth2/v4/token",
-                                iat: Int(Date().timeIntervalSince1970))
-        let header = Header(typ: "JWT")
-        var jwt = JWT(header: header, claims: myClaims)
-        logger.debug("Getting Private key")
-        guard let data = private_key.data(using: .utf8) else { throw  SwiftyFireError.badPrivateKey }
-        logger.debug("Creating Signer")
-        let jwtSigner = JWTSigner.rs256(privateKey: data)
-        logger.debug("Signing private key")
-        jwtString = try jwt.sign(using: jwtSigner)
+        jwtString = jwt
     }
+
+
+
 
     /// Create GoogleOAuthToken from signed JWT
     ///
@@ -96,13 +74,5 @@ class SFSecrets {
         logger.debug("Requesting Google Access Token")
         task.resume()
     }
-}
-
-fileprivate struct MyClaims: Claims {
-    let iss: String
-    let scope: String
-    let exp: Int
-    let aud: String
-    let iat: Int
 }
 
