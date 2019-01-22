@@ -1,2 +1,45 @@
-language: swift
-os: osx
+if: tag IS blank
+branches:
+  only:
+  - master
+env:
+  global:
+  - SWIFT_BRANCH=swift-4.2-branch
+  - SWIFT_VERSION=swift-4.2-DEVELOPMENT-SNAPSHOT-2018-05-30-a
+  - PACKAGE_VERSION=0.0.1
+  - secure: X1SbjUBc8n6I9OXJnid0Vw+RWjNeYvR28Y8/heCN8sTw5f9g2ChXlCo4cQtjkxd4b6YbHaU/36m6AICR3CHNiDIw3/HgL0MVoxISvEIrtEn3QcRuROc0Z9nswI0qBiSsvTDw+HNesEZIJIg+AB5IaSHcsMVC5Ay+tiRC17WmluUzifW6nmOpSHScnOqZEnhT0UTpu9HESWM3pYA83oquUj0P/hzxbwmQ4CUG6I0WQRsN63wFrylJ7A32w9TNSIgj5+hhkb0QVAiAk8AHnUZDK+bk0CFFbi8OC4jSqsdh3e4D9sdBJjQHIxIcT4S9h7wgCRZPFmpxTdWU6XyqN+5TnJ2IZhR5ZkcVW7i3/t2wu/dgp5hG42/gJwXHqLCjlS1Qc4BZqABrRtlYdiSskI0B1p7xB3e7BU/judxi2DqSgdftc58rn7i8tGxtoIzgsoFn0x16k7RDQvIrx+5cj6Xbw6a6zRrTFNmSezSNVZ9P2WI1/ETPjOzq2enlZKpi5UgZqHvGkqV+wZQrrSEERuICLKSczoTOvHaGNilcnrWEQSRK4MIvNBiluTyqmBg/PXweHdclLzbx0SfST3rk0+MyEeSPCBZ4A43IU+o7OZFhwP7WzMcdov5kcc4wFOANiT41pJPMPRMVf3epJwI8J4i3qP/Fqx4ByiScQfIofIOhGHw=
+jobs:
+  include:
+  - stage: Linux test
+    os: linux
+    language: generic
+    dist: trusty
+    sudo: required
+    install:
+    - sudo apt-get install clang libicu-dev
+    - mkdir swift
+    - curl https://swift.org/builds/$SWIFT_BRANCH/ubuntu1404/$SWIFT_VERSION/$SWIFT_VERSION-ubuntu14.04.tar.gz
+      -s | tar xz -C swift &> /dev/null
+    - export PATH="$(pwd)/swift/$SWIFT_VERSION-ubuntu14.04/usr/bin:$PATH"
+    script:
+    - swift package update
+    - swift test
+  - stage: OSX test
+    os: osx
+    osx_image: xcode9.3
+    language: swift
+    sudo: required
+    install:
+    - wget https://swift.org/builds/$SWIFT_BRANCH/xcode/$SWIFT_VERSION/$SWIFT_VERSION-osx.pkg
+    - sudo installer -pkg $SWIFT_VERSION-osx.pkg -target /
+    - export PATH="/Library/Developer/Toolchains/$SWIFT_VERSION.xctoolchain/usr/bin:$PATH"
+    script:
+    - swift package update
+    - swift test
+  - stage: Set tag
+    script:
+    - git config --global user.email "builds@travis-ci.com"
+    - git config --global user.name "Travis CI"
+    - git tag $PACKAGE_VERSION
+    - git push --quiet https://$GH_TOKEN@github.com/beatsbears/Incrementer --tag >
+      /dev/null 2>&1
