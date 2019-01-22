@@ -1,8 +1,7 @@
 # SwiftyFire
 [![Build Status](https://travis-ci.com/mhs2342/SwiftyFire.svg?branch=master)](https://travis-ci.com/mhs2342/SwiftyFire)
 
-A description of this package.
-
+Build is currently failing due to issues with envionrment vars
 ## Swift Package Manager 
 ```swift
 .package(url: "https://github.com/mhs2342/SwiftyFire.git", from: "0.2.0"),
