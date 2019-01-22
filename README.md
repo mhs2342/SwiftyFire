@@ -125,5 +125,5 @@ There some tests written that are dependent on environment variables because the
 
 `firebase_service_account`: this is the email that firebase provides for you and which can be found in your project settings.
 
-`database_url`: This is the url of your database. By default, all tests are written to the `<host>/` node, so I would recommend adding a `testing/ node to prevent cluttering your root database nodes`.
+`database_url`: This is the url of your database. By default, all tests are written to the `<host>/` node, so I would recommend adding a `testing/` node to prevent cluttering your root database nodes.
 	Should you choose to run the tests, expect them to fail unless you have the above environment variables set via the Xcode scheme editor.
