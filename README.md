@@ -9,7 +9,7 @@ A description of this package.
 
 ```
 
-##Usage
+## Usage
 ```swift
 import SwiftyFire
 
@@ -20,12 +20,12 @@ fire.setup { GoogleAccessToken?, Error? in
 }
 ```
 
-###JWT
+### JWT
 The authentication mechanism for firebase requires that we obtain a Google Access token that is passed into each `REST` request made to your database. The process for this is done by creating what is known as a JWT ([JSON Web Token](https://www.jwt.io)). Further releases of this library will include automatic generation of JWT's but as of now you must pass in your own to SF. 
 
 Creating a JWT is not difficult and I chose to do so with the [Vapor JWT library](https://github.com/vapor/jwt).
 
-####Package.swift
+#### Package.swift
 ```swift
 .package(url: "https://github.com/vapor/jwt.git", from: "3.0.0")
 ```
@@ -47,7 +47,7 @@ struct FirebaseJWT: JWTPayload {
 }
 ```
 
-####Creation
+#### JWT Creation
 ```swift
 import Crypto
 import JWT
@@ -63,10 +63,10 @@ let jwt = String(data: data, encoding: .utf8) ?? ""
 ```
 The key you use needs to be an RSA private key that you obtain from your firebase project settings. The key you download will *not* be an RSA key, but you can easily transform that into an RSA key using openssl.
 
-###Values
+### Values
 SwiftyFire will return 4 possible values from any request you perform, `.dictionary(val: [String: AnyObject])`, `.string(val: String)`, `.bool(val: Bool)` and `.null`
 
-###Operations
+### Operations
 SF supports all of the main operations that the Firebase REST API supports. 
 #### POST
 ```swift
@@ -79,7 +79,7 @@ SF supports all of the main operations that the Firebase REST API supports.
 ///   - completion: callback function with an optional value of the data just saved and optional error
 public func post(path: String, val: [String: AnyObject], completion: @escaping SFCallback)
 ```
-####PATCH
+#### PATCH
 ```swift
 /// Issue a patch request. Patch is a non-destructive request, meaning it will not overwrite that node with your data.
 ///
@@ -89,7 +89,7 @@ public func post(path: String, val: [String: AnyObject], completion: @escaping S
 ///   - completion: callback function with an optional value of the data just saved and optional error
 public func patch(path: String, val: [String: AnyObject], completion: @escaping SFCallback)
 ```
-####PUT
+#### PUT
 ```swift
 /// Issue a put request. Put is a destructive request, meaning it will overwrite that node with your data.
 ///
@@ -99,7 +99,7 @@ public func patch(path: String, val: [String: AnyObject], completion: @escaping 
 ///   - completion: callback function with an optional value of the data just saved and optional error
 public func put(path: String, val: [String: AnyObject], completion: @escaping SFCallback)
 ```
-####GET
+#### GET
 ```swift
 /// Issue a get request. Retrieve the data at that location
 ///
@@ -108,7 +108,7 @@ public func put(path: String, val: [String: AnyObject], completion: @escaping SF
 ///   - completion: callback function with an optional value and optional error
 public func get(path: String, completion: @escaping SFCallback)
 ```
-####DELETE
+#### DELETE
 ```swift
 /// Issue a delete request. Delete the data at that location
 ///
@@ -118,7 +118,7 @@ public func get(path: String, completion: @escaping SFCallback)
 public func delete(path: String, completion: @escaping SFCallback)
 ```
 
-##Testing
+## Testing
 There some tests written that are dependent on environment variables because there shall not be any private resources contributed to the repo. 
 
 `google_private_key`: This is your RSA formatted private key that is obtained from your firebase project settings
