@@ -40,7 +40,7 @@ final class SwiftyFireTests: XCTestCase {
 
     func testPut() {
         let exp1 = expectation(description: "com.swiftyfire.putbar")
-        let payload = ["boo": "raz"] as [String: AnyObject]
+        let payload = ["boo": "raz"] as! [String: AnyObject]
         swiftyFire.put(path: "put", val: payload) { (val, error) in
             guard let val = val else {
                 XCTFail()
@@ -68,7 +68,7 @@ final class SwiftyFireTests: XCTestCase {
         ]
         let exp1 = expectation(description: "com.swiftyfire.putcomplex")
 
-        swiftyFire.put(path: "complexput", val: complexDict as [String: AnyObject]) { (val, error) in
+        swiftyFire.put(path: "complexput", val: complexDict as! [String: AnyObject]) { (val, error) in
             guard let val = val else {
                 XCTFail()
                 return
@@ -97,7 +97,7 @@ final class SwiftyFireTests: XCTestCase {
             "bool_val": false
         ]
         let exp1 = expectation(description: "com.swiftyfire.patchcomplex1")
-        swiftyFire.patch(path: "patch", val: complexDict as [String: AnyObject]) { (val, error) in
+        swiftyFire.patch(path: "patch", val: complexDict as! [String: AnyObject]) { (val, error) in
             guard let val = val else {
                 XCTFail()
                 return
@@ -135,7 +135,7 @@ final class SwiftyFireTests: XCTestCase {
     func testPost() {
         let exp1 = expectation(description: "com.swiftyfire.post")
         let payload = ["message": "heyo!"]
-        swiftyFire.post(path: "post", val: payload as [String : AnyObject]) { (val, error) in
+        swiftyFire.post(path: "post", val: payload as! [String : AnyObject]) { (val, error) in
             guard let val = val else {
                 XCTFail()
                 return
@@ -156,7 +156,7 @@ final class SwiftyFireTests: XCTestCase {
         let exp1 = expectation(description: "com.swiftyfire.putbar")
         let exp2 = expectation(description: "com.swiftyfire.delete")
 
-        let payload = ["boo": "raz"] as [String: AnyObject]
+        let payload = ["boo": "raz"] as! [String: AnyObject]
         swiftyFire.put(path: "put", val: payload) { (val, error) in
             guard let val = val else {
                 XCTFail()
