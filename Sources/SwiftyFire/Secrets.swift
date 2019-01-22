@@ -26,9 +26,14 @@ class SFSecrets {
     }
 
     internal init() throws {
+        var gpk = ""
+        if let travisKey = ProcessInfo.processInfo.environment["encrypted_636c062d8cb4_key"] {
+            gpk = travisKey
+        } else {
+            gpk = ProcessInfo.processInfo.environment["google_private_key"] ?? ""
+        }
 
-        guard let gpk = ProcessInfo.processInfo.environment["google_private_key"],
-            let fsa = ProcessInfo.processInfo.environment["firebase_service_account"],
+        guard let fsa = ProcessInfo.processInfo.environment["firebase_service_account"],
             let db_url = ProcessInfo.processInfo.environment["database_url"] else {
                 throw SwiftyFireError.environmentVariablesNotFound
         }
