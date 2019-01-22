@@ -5,18 +5,7 @@ final class SwiftyFireTests: XCTestCase {
     var swiftyFire: SwiftyFire!
 
     override func setUp() {
-        let group = DispatchGroup()
-        group.enter()
-        generateAuthentication { (swifty) in
-            self.swiftyFire = swifty
-            group.leave()
-            group.enter()
-            self.swiftyFire.setup(completion: { (_, _) in
-                group.leave()
-            })
-
-        }
-        _ = group.wait(timeout: .now() + 10)
+        swiftyFire = try! SwiftyFire(delegate: self)
     }
 
     func testGet() {
@@ -217,7 +206,10 @@ final class SwiftyFireTests: XCTestCase {
         ("testPatch", testPatch),
         ("testPut", testPut),
         ("testComplexPut", testComplexPut),
-        ("testGet", testGet)
+        ("testGet", testGet),
+        ("testDelete", testDelete),
+        ("testPost", testPost)
+
     ]
 }
 

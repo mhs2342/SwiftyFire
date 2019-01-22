@@ -7,6 +7,8 @@
 
 import Foundation
 import Logging
+import JWT
+import Crypto
 
 class SFSecrets {
     var databaseURL: String
@@ -23,7 +25,31 @@ class SFSecrets {
         jwtString = jwt
     }
 
+    internal init() throws {
 
+        guard let gpk = ProcessInfo.processInfo.environment["google_private_key"],
+            let fsa = ProcessInfo.processInfo.environment["firebase_service_account"],
+            let db_url = ProcessInfo.processInfo.environment["database_url"] else {
+                throw SwiftyFireError.environmentVariablesNotFound
+        }
+        let payload = FirebaseJWT(iss: fsa,
+                                  scope: "https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email",
+                                  exp: Int(Date().addingTimeInterval(60 * 30).timeIntervalSince1970),
+                                  aud: "https://www.googleapis.com/oauth2/v4/token",
+                                  iat: Int(Date().timeIntervalSince1970))
+        let key = try RSAKey.private(pem: gpk)
+        let data = try JWT<FirebaseJWT>(payload: payload).sign(using: JWTSigner.rs256(key: key))
+        jwtString = String(data: data, encoding: .utf8) ?? ""
+        databaseURL = db_url
+
+        let group = DispatchGroup()
+        group.enter()
+        getGoogleAuthToken { (token, error) in
+            group.leave()
+        }
+
+        _ = group.wait(timeout: .now() + 15)
+    }
 
 
     /// Create GoogleOAuthToken from signed JWT

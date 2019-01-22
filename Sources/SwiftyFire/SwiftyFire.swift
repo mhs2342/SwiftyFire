@@ -18,6 +18,11 @@ public final class SwiftyFire {
         logger.debug("SwiftyFire initialized")
     }
 
+    internal init(delegate: SwiftyFireDelegate) throws {
+        self.delegate = delegate
+        self.secrets = try SFSecrets()
+    }
+
     deinit {
         logger.debug("Deinit called")
         delegate = nil
@@ -60,7 +65,7 @@ public final class SwiftyFire {
         write(path, val, "PATCH", completion)
     }
 
-    /// Issue a patch request. Put is a destructive request, meaning it will overwrite that node with your data.
+    /// Issue a put request. Put is a destructive request, meaning it will overwrite that node with your data.
     ///
     /// - Parameters:
     ///   - path: desired location of data

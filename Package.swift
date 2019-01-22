@@ -11,12 +11,13 @@ let package = Package(
             targets: ["SwiftyFire"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/vapor/console.git", from: "3.0.0")
+        .package(url: "https://github.com/vapor/console.git", from: "3.0.0"),
+        .package(url: "https://github.com/vapor/jwt.git", from: "3.0.0")
     ],
     targets: [
         .target(
             name: "SwiftyFire",
-            dependencies: ["Logging"]),
+            dependencies: ["Logging", "JWT"]),
         .testTarget(
             name: "SwiftyFireTests",
             dependencies: ["SwiftyFire"]),

@@ -19,4 +19,5 @@ public enum SwiftyFireError: Error {
     case unknownError
     case authenticationTokenWasNotRefreshed
     case badPrivateKey
+    case environmentVariablesNotFound
 }
