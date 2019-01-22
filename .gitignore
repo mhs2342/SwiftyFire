@@ -4,3 +4,5 @@
 /*.xcodeproj
 *.json
 *.txt
+*.pem
+*.key

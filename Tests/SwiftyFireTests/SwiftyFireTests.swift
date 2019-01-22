@@ -181,20 +181,6 @@ final class SwiftyFireTests: XCTestCase {
         waitForExpectations(timeout: 10)
     }
 
-    func generateAuthentication(completion: @escaping (SwiftyFire) -> Void) {
-        let data = try! SwiftyFireTests.loadJsonFromFile("secrets")
-        let secrets = try! JSONDecoder().decode(SFTestingSecrets.self, from: data)
-        guard let jwt = ProcessInfo.processInfo.environment["jwt"] else { return }
-        let swiftyFire = try! SwiftyFire(jwt: jwt, db_url: secrets.database_url, delegate: self)
-        completion(swiftyFire)
-    }
-
-    func createTestingEnvironment() {
-        let payload = ["foo": "bar"] as [String: AnyObject]
-        swiftyFire.put(path: "tests/", val: payload) { _, _ in
-        }
-    }
-
     static func loadJsonFromFile(_ name: String, _ suffix: String = "json") throws -> Data {
         let bundle = Bundle(for: SwiftyFireTests.self)
         let path = bundle.path(forResource: name, ofType: suffix)
